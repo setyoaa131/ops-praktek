@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\ProdukModel;
+use CodeIgniter\Controller;
 
 class ProdukController extends BaseController
 {
@@ -13,106 +14,160 @@ class ProdukController extends BaseController
         return view('dashboard', ['produk' => $produk]);
     }
 
-    public function simpanProduk()
+    public function simpan()
     {
-        $produkModel = new ProdukModel();
-
         $validation = \Config\Services::validation();
         $validation->setRules([
-            'nama_barang'     => 'required|max_length[100]',
-            'kategori_produk' => 'required|in_list[Alat Olahraga,Alat Musik]',
-            'harga_beli'      => 'required|decimal',
+            'kategori_produk' => 'required|max_length[50]',
+            'nama_produk'     => 'required|max_length[100]',
+            'harga_barang'    => 'required|decimal',
             'harga_jual'      => 'required|decimal',
-            'stok_produk'     => 'required|integer|min_length[1]',
-            'upload_image'    => 'uploaded[upload_image]|mime_in[upload_image,image/jpg,image/jpeg]|max_size[upload_image,102400]', // Validasi file gambar
-        ], [
-            'upload_image' => [
-                'uploaded' => 'File gambar harus diunggah!',
-                'mime_in'  => 'Format file gambar harus berupa JPG atau JPEG!',
-                'max_size' => 'Ukuran file gambar tidak boleh lebih dari 100 MB!',
-            ]
+            'stok_produk'     => 'required|integer',
+            'upload_image'    => 'uploaded[upload_image]|is_image[upload_image]|max_size[upload_image,2048]'
         ]);
 
-        if (!$validation->run($this->request->getPost())) {
-            return redirect()->back()->withInput()->with('error', 'Ada kesalahan pada input.');
+        if (!$this->validate($validation->getRules())) {
+            return redirect()->back()->withInput()->with('errors', $validation->getErrors());
         }
-
-        $hargaBeli = (float) str_replace('.', '', $this->request->getPost('harga_beli'));
-        $hargaJual = $this->request->getPost('harga_jual')
-            ? (float) str_replace('.', '', $this->request->getPost('harga_jual'))
-            : ($hargaBeli * 1.3);
-
-        $data = [
-            'nama_produk'     => $this->request->getPost('nama_barang'),
-            'kategori_produk' => $this->request->getPost('kategori_produk'),
-            'stok_produk'     => (int) $this->request->getPost('stok_produk'),
-            'harga_barang'    => $hargaBeli,
-            'harga_jual'      => round($hargaJual, 2),
-        ];
 
         $file = $this->request->getFile('upload_image');
-        if ($file && $file->isValid()) {
-            $fileName = $file->getRandomName();
-            $file->move('uploads', $fileName);
-            $data['image'] = $fileName;
+        if ($file->isValid() && !$file->hasMoved()) {
+            $newName = $file->getRandomName();
+            $file->move(ROOTPATH . 'public/uploads', $newName);
+        } else {
+            return redirect()->back()->withInput()->with('error', 'Gagal mengupload gambar');
         }
 
-        if ($produkModel->insert($data)) {
-            return redirect()->to('dashboard')->with('success', 'Produk berhasil ditambahkan!');
+        $model = new ProdukModel();
+        $data = [
+            'kategori_produk' => $this->request->getPost('kategori_produk'),
+            'nama_produk'     => $this->request->getPost('nama_produk'),
+            'harga_barang'    => (float) str_replace('.', '', $this->request->getPost('harga_barang')),
+            'harga_jual'      => (float) str_replace('.', '', $this->request->getPost('harga_jual')),
+            'stok_produk'     => (int) $this->request->getPost('stok_produk'),
+            'image'           => $newName,
+        ];
+
+        $model->insert($data);
+
+        return redirect()->to('/dashboard')->with('success', 'Produk berhasil disimpan');
+    }
+
+    public function delete($id_product)
+    {
+        $produkModel = new ProdukModel();
+        $produk = $produkModel->find($id_product);
+
+        if ($produk) {
+            $produkModel->delete($id_product);
+            return redirect()->to('dashboard')->with('success', 'Produk berhasil dihapus.');
         } else {
-            return redirect()->back()->with('error', 'Gagal menambahkan produk!');
+            return redirect()->to('dashboard')->with('error', 'Produk tidak ditemukan.');
         }
     }
 
-    public function editProduk($id)
+    public function create()
+    {
+        $db = \Config\Database::connect();
+        $query = $db->query("SHOW COLUMNS FROM products WHERE Field = 'kategori_produk'");
+        $result = $query->getRow();
+
+        // Ambil nilai enum dari kolom kategori_produk
+        preg_match("/^enum\((.*)\)$/", $result->Type, $matches);
+        $enumValues = array_map(function ($value) {
+            return trim($value, "'");
+        }, explode(",", $matches[1]));
+
+        // Hapus nilai kosong ('')
+        $enumValues = array_filter($enumValues, function ($value) {
+            return $value !== '';
+        });
+
+        // Kirim data ke view
+        return view('tambah_produk', ['kategori_produk' => $enumValues]);
+    }
+
+    // app/Controllers/ProdukController.php
+
+    public function edit_produk($id_product)
     {
         $produkModel = new ProdukModel();
-        $produk = $produkModel->find($id);
+
+        // Cari produk berdasarkan ID
+        $produk = $produkModel->find($id_product);
 
         if (!$produk) {
-            return redirect()->to('dashboard')->with('error', 'Produk tidak ditemukan!');
+            // Jika produk tidak ditemukan, redirect dengan pesan error
+            return redirect()->to('/dashboard')->with('error', 'Produk tidak ditemukan.');
         }
 
-        return view('edit_produk', ['produk' => $produk]);
+        // Ambil nilai enum kategori_produk
+        $db = \Config\Database::connect();
+        $query = $db->query("SHOW COLUMNS FROM products WHERE Field = 'kategori_produk'");
+        $result = $query->getRow();
+        preg_match("/^enum\((.*)\)$/", $result->Type, $matches);
+        $enumValues = array_map(function ($value) {
+            return trim($value, "'");
+        }, explode(",", $matches[1]));
+
+        // Kirim data ke view untuk ditampilkan di form
+        return view('edit_produk', [
+            'produk' => $produk,
+            'kategori_produk' => $enumValues
+        ]);
     }
 
-    public function updateProduk($id)
+
+    public function update_produk($id_product)
     {
         $produkModel = new ProdukModel();
 
+        // Validasi input
         $validation = \Config\Services::validation();
         $validation->setRules([
-            'nama_barang'     => 'required|max_length[100]',
-            'kategori_produk' => 'required|in_list[Alat Olahraga,Alat Musik]',
-            'harga_beli'      => 'required|decimal',
+            'kategori_produk' => 'required|max_length[50]',
+            'nama_produk'     => 'required|max_length[100]',
+            'harga_barang'    => 'required|decimal',
             'harga_jual'      => 'required|decimal',
-            'stok_produk'     => 'required|integer|min_length[1]',
-            'upload_image'    => 'permit_empty|mime_in[upload_image,image/jpg,image/jpeg]|max_size[upload_image,102400]',
+            'stok_produk'     => 'required|integer',
+            'upload_image'    => 'is_image[upload_image]|max_size[upload_image,2048]' // opsional
         ]);
 
-        if (!$validation->run($this->request->getPost())) {
-            return redirect()->back()->withInput()->with('error', 'Ada kesalahan pada input.');
+        if (!$this->validate($validation->getRules())) {
+            return redirect()->back()->withInput()->with('errors', $validation->getErrors());
         }
 
+        // Data yang akan diupdate
         $data = [
-            'nama_produk'     => $this->request->getPost('nama_barang'),
             'kategori_produk' => $this->request->getPost('kategori_produk'),
-            'stok_produk'     => (int) $this->request->getPost('stok_produk'),
-            'harga_barang'    => (float) str_replace('.', '', $this->request->getPost('harga_beli')),
+            'nama_produk'     => $this->request->getPost('nama_produk'),
+            'harga_barang'    => (float) str_replace('.', '', $this->request->getPost('harga_barang')),
             'harga_jual'      => (float) str_replace('.', '', $this->request->getPost('harga_jual')),
+            'stok_produk'     => (int) $this->request->getPost('stok_produk'),
         ];
 
+        // Proses upload gambar jika ada
         $file = $this->request->getFile('upload_image');
-        if ($file && $file->isValid()) {
-            $fileName = $file->getRandomName();
-            $file->move('uploads', $fileName);
-            $data['image'] = $fileName;
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $newName = $file->getRandomName();
+            $file->move(ROOTPATH . 'public/uploads', $newName);
+            $data['image'] = $newName;
+
+            // Hapus gambar lama jika ada
+            $oldImage = $produkModel->find($id_product)['image'];
+            if ($oldImage && file_exists(ROOTPATH . 'public/uploads/' . $oldImage)) {
+                unlink(ROOTPATH . 'public/uploads/' . $oldImage);
+            }
         }
 
-        if ($produkModel->update($id, $data)) {
-            return redirect()->to('dashboard')->with('success', 'Produk berhasil diperbarui!');
-        } else {
-            return redirect()->back()->with('error', 'Gagal memperbarui produk!');
-        }
+        $produkModel->update($id_product, $data);
+
+        return redirect()->to('/dashboard')->with('success', 'Produk berhasil diperbarui.');
+        // Update data di database
+        // if ($produkModel->update($id_product, $data)) {
+        //     return redirect()->to('/dashboard')->with('success', 'Produk berhasil diperbarui.');
+        // } else {
+        //     return redirect()->back()->with('error', 'Gagal memperbarui produk.');
+        // }
     }
 }

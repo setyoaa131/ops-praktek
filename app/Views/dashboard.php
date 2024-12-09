@@ -97,9 +97,12 @@
                                             <a href="<?= base_url('edit-produk/' . $item['id_product']); ?>" class="btn btn-default btn-sm me-1">
                                                 <img src="<?= base_url('assets/edit.png'); ?>" alt="Edit" class="me-1" style="max-height: 20px;">
                                             </a>
-                                            <a href="<?= base_url('produk/delete/' . $item['id_product']); ?>" class="btn btn-default btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">
+                                            <a href="<?= base_url('produk/delete/' . $item['id_product']); ?>"
+                                                class="btn btn-default btn-sm"
+                                                onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
                                                 <img src="<?= base_url('assets/delete.png'); ?>" alt="Delete" class="me-1" style="max-height: 20px;">
                                             </a>
+
                                         </div>
                                     </td>
                                 </tr>
