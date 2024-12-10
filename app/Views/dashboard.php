@@ -46,14 +46,23 @@
         <div class="content w-full" id="content">
             <h2 class="text-lg font-bold mb-4">Daftar Produk</h2>
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <input type="text" class="form-control w-1/2 me-2" placeholder="Cari barang">
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Semua
+                <form method="get" action="<?= base_url('produk/search') ?>" class="d-flex mb-3">
+                    <input
+                        type="text"
+                        name="nama_produk"
+                        class="form-control w-50 me-2"
+                        placeholder="Cari barang"
+                        value="<?= isset($nama_produk) ? esc($nama_produk) : '' ?>">
+                </form>
+
+                <div class="dropdown mb-3">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        Pilih Kategori
                     </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Alat Olahraga</a></li>
-                        <li><a class="dropdown-item" href="#">Alat Musik</a></li>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="<?= base_url('produk/search?kategori_produk=Semua') ?>">Semua</a></li>
+                        <li><a class="dropdown-item" href="<?= base_url('produk/search?kategori_produk=Alat Olahraga') ?>">Alat Olahraga</a></li>
+                        <li><a class="dropdown-item" href="<?= base_url('produk/search?kategori_produk=Alat Musik') ?>">Alat Musik</a></li>
                     </ul>
                 </div>
                 <button class="btn export text-white font-semibold">
@@ -102,7 +111,6 @@
                                                 onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
                                                 <img src="<?= base_url('assets/delete.png'); ?>" alt="Delete" class="me-1" style="max-height: 20px;">
                                             </a>
-
                                         </div>
                                     </td>
                                 </tr>

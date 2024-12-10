@@ -49,92 +49,86 @@
                 <span class="text-lg font-bold">&gt; Tambah Produk</span>
             </h2>
 
-            <form action="<?= base_url('update-produk/' . $produk['id_product']) ?>" method="post" enctype="multipart/form-data">
+            <form action="<?= base_url('simpanProduk') ?>" method="post" enctype="multipart/form-data">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Kategori Produk -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700" for="kategori_produk">
                             Kategori
                         </label>
-                        <select name="kategori_produk" id="kategori_produk" required
-                            class="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <select name="kategori_produk" id="kategori_produk" class="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
                             <option value="">Pilih Kategori</option>
-                            <?php foreach ($kategori_produk as $kategori): ?>
-                                <option value="<?= $kategori ?>" <?= $produk['kategori_produk'] == $kategori ? 'selected' : '' ?>><?= $kategori ?></option>
-                            <?php endforeach; ?>
+                            <option value="Alat Olahraga">Alat Olahraga</option>
+                            <option value="Alat Musik">Alat Musik</option>
                         </select>
-                    </div>
 
-                    <!-- Nama Produk -->
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700" for="nama_produk">
                             Nama Barang
                         </label>
                         <input type="text" name="nama_produk" id="nama_produk" required
-                            value="<?= $produk['nama_produk'] ?>"
                             class="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                             placeholder="Masukan nama barang" />
+
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    <!-- Harga Beli -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700" for="harga_barang">
                             Harga Beli
                         </label>
                         <div class="mt-1 relative rounded-md shadow-sm flex items-center">
                             <span class="text-gray-500">Rp</span>
-                            <input type="text" id="harga_barang" name="harga_barang" required
-                                value="<?= number_format($produk['harga_barang'], 0, ',', '.') ?>"
+                            <input
+                                type="text"
+                                id="harga_barang"
+                                name="harga_barang"
                                 class="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                placeholder="0" oninput="formatRupiah(this); calculateHargaJual();" />
+                                placeholder="0"
+                                oninput="formatRupiah(this); calculateHargaJual();" />
                         </div>
                     </div>
-
-                    <!-- Harga Jual -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700" for="harga_jual">
                             Harga Jual
                         </label>
                         <div class="mt-1 relative rounded-md shadow-sm flex items-center">
                             <span class="text-gray-500">Rp</span>
-                            <input type="text" id="harga_jual" name="harga_jual" required readonly
-                                value="<?= number_format($produk['harga_jual'], 0, ',', '.') ?>"
+                            <input
+                                type="text"
+                                id="harga_jual"
+                                name="harga_jual"
+                                readonly
                                 class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 py-2 pl-3 pr-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder="0" />
                         </div>
                     </div>
-
-                    <!-- Stok Produk -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700" for="stok_produk">
                             Stok Barang
                         </label>
                         <input type="number" name="stok_produk" id="stok_produk" min="1" required
-                            value="<?= $produk['stok_produk'] ?>"
                             class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                             placeholder="0" />
                     </div>
                 </div>
 
-                <!-- Upload Gambar -->
                 <div class="mt-4">
                     <label class="block text-sm font-medium text-gray-700" for="upload_image">
                         Upload Gambar
                     </label>
-                    <input type="file" name="upload_image" id="upload_image" accept="image/*"
-                        class="hidden" onchange="previewImage(event)">
+                    <input type="file" name="upload_image" id="upload_image" accept="image/*" class="hidden" onchange="previewImage(event)">
                     <div class="border-dashed border-2 border-blue-500 rounded-md p-4 flex flex-col items-center justify-center cursor-pointer"
                         onclick="document.getElementById('upload_image').click()">
-                        <img id="preview_image" src="<?= base_url('uploads/' . $produk['image']) ?>"
-                            alt="Upload Preview" class="mb-2 max-h-40" />
+                        <img id="preview_image" src="<?= base_url('assets/Image.png') ?>" alt="Upload Preview" class="mb-2 max-h-40" />
                         <span id="preview_text">Upload Gambar Disini</span>
                     </div>
                 </div>
 
                 <div class="mt-4 flex justify-end">
-                    <button type="button" onclick="window.location.href='<?= base_url('dashboard') ?>'"
+                    <button type="button"
+                        onclick="window.location.href='<?= base_url('dashboard') ?>'"
                         class="bg-white border border-blue-500 text-blue-500 py-2 px-4 rounded-md mr-2">
                         Batalkan
                     </button>
@@ -157,40 +151,22 @@
             });
         });
 
-        function formatRupiah(angka) {
-            var number_string = angka.replace(/[^,\d]/g, '').toString(),
-                split = number_string.split(','),
-                sisa = split[0].length % 3,
-                rupiah = split[0].substr(0, sisa),
-                ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-
-            // Jika ada ribuan, tambahkan titik di antaranya
-            if (ribuan) {
-                separator = sisa ? '.' : '';
-                rupiah += separator + ribuan.join('.');
+        function formatRupiah(element) {
+            let value = element.value.replace(/\./g, '');
+            if (!isNaN(value)) {
+                element.value = new Intl.NumberFormat('id-ID').format(value);
             }
-
-            // Tambahkan bagian setelah koma jika ada
-            rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-
-            return rupiah;
-        }
-
-        // Format input saat pengguna mengetik
-        function formatInputRupiah(input) {
-            input.value = formatRupiah(input.value);
         }
 
         function calculateHargaJual() {
-            const hargaBeliInput = document.getElementById('harga_barang');
+            const hargaBeli = document.getElementById('harga_barang').value.replace(/\./g, '');
             const hargaJualElement = document.getElementById('harga_jual');
-            const hargaBeli = hargaBeliInput.value.replace(/\./g, ''); // Ambil angka murni tanpa titik
 
-            if (hargaBeli && !isNaN(hargaBeli)) {
-                const hargaJual = Math.round(parseFloat(hargaBeli) * 1.3); // Hitung harga jual (30% lebih tinggi)
-                hargaJualElement.value = new Intl.NumberFormat('id-ID').format(hargaJual); // Tampilkan sebagai rupiah
+            if (hargaBeli) {
+                const hargaJual = (parseFloat(hargaBeli) * 1.3).toFixed(2);
+                hargaJualElement.value = new Intl.NumberFormat('id-ID').format(hargaJual);
             } else {
-                hargaJualElement.value = '0'; // Kosongkan jika input tidak valid
+                hargaJualElement.value = 0;
             }
         }
 
